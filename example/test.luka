@@ -1,0 +1,6 @@
+#!/Users/yu/Desktop/luka-1.0.1/bin/luka
+
+package(c);
+
+print("It Works!\n");
+print(tostring(ctime(time())) + "\n");
