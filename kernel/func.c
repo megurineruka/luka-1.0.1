@@ -57,7 +57,7 @@ static voidp luka_c_count (Luka *luka, voidp *p, size_t n) {
 	if (n < 1)
 		return luka_null(luka);
 
-	array = luka_get_array(luka, p);
+	array = luka_get_array(luka, p[0]);
 	return luka_put_int(luka, luka_array_length(luka, array));
 }
 

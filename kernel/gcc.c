@@ -463,7 +463,7 @@ static void luka_gcc_decode_ex2 (Luka *luka, LukaGCC2 *gcc, LukaGCCData *gcc_dat
             }
 
             //return
-            else if (strncmp(gcc_data->p, "return", 6) == 0 && (*(gcc_data->p + 6) == '(' || *(gcc_data->p + 6) <= 32)) {
+            else if (strncmp(gcc_data->p, "return", 6) == 0 && (*(gcc_data->p + 6) == ';' || *(gcc_data->p + 6) <= 32)) {
                 gcc_data->p += 6;
                 state = LUKA_GCCS_RETURN;
             }
@@ -1427,7 +1427,7 @@ static int luka_express_end (const char *s) {
 
     for (i = LUKA_OPER_OBJ; i < LUKA_OPER_NULL; i++) {
         if (i == LUKA_OPER_ARRAY) continue;
-        if (strncmp(g_Oper[i], s, strlen(g_Oper[i])) == 0)
+        if (strlen(g_Oper[i]) != 0 && strncmp(g_Oper[i], s, strlen(g_Oper[i])) == 0)
             return 1;
     }
     return 0;
@@ -1638,9 +1638,9 @@ static int luka_express_int (const char **s, int *i) {
     if (*p == '.')
         return 0;
 
-    if (luka_express_end(p) == 0)
+    if (luka_express_end(p) == 0 && *p != ']')
         return 0;
-    
+
     *i = atoi(*s);
     *s = p;
     return 1;
@@ -2194,6 +2194,7 @@ voidp luka_express_exec (Luka *luka, RBTreeC *vars, LukaExpress *express) {
 
         //!=
         else if (oper->oper == LUKA_OPER_NOTQEU) {
+            left2_p = luka_expressnode_exec(luka, vars, express_cp, left2);
             if ((luka_is_int(luka, left1_p) || luka_is_double(luka, left1_p)) && ((luka_is_int(luka, left2_p) || luka_is_double(luka, left2_p)))) {
                 if (luka_is_int(luka, left1_p) && luka_is_int(luka, left2_p)) {
                     if (luka_get_int(luka, left2_p) == luka_get_int(luka, left1_p)) {
@@ -2226,7 +2227,8 @@ voidp luka_express_exec (Luka *luka, RBTreeC *vars, LukaExpress *express) {
 
         //&&
         else if (oper->oper == LUKA_OPER_AND) {
-            if (luka_is_true(luka, left2) && luka_is_true(luka, left1)) {
+            left2_p = luka_expressnode_exec(luka, vars, express_cp, left2);
+            if (luka_is_true(luka, left2_p) && luka_is_true(luka, left1_p)) {
                 luka_express_RPN_update(luka, express_cp, left2, luka_true(luka));
             } else {
                 luka_express_RPN_update(luka, express_cp, left2, luka_false(luka));
@@ -2238,7 +2240,8 @@ voidp luka_express_exec (Luka *luka, RBTreeC *vars, LukaExpress *express) {
 
         //||
         else if (oper->oper == LUKA_OPER_OR) {
-            if (luka_is_true(luka, left2) || luka_is_true(luka, left1)) {
+            left2_p = luka_expressnode_exec(luka, vars, express_cp, left2);
+            if (luka_is_true(luka, left2_p) || luka_is_true(luka, left1_p)) {
                 luka_express_RPN_update(luka, express_cp, left2, luka_true(luka));
             } else {
                 luka_express_RPN_update(luka, express_cp, left2, luka_false(luka));

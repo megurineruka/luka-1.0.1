@@ -390,16 +390,16 @@ void luka_data_destroy (Luka *luka, LukaData *data) {
 }
 
 void luka_data_up (Luka *luka, voidp p) {
-	LukaData *data = (LukaData *)p;
+	/*LukaData *data = (LukaData *)p;
 
 	if (data->type == LUKA_NULL || data->type == LUKA_TRUE || data->type == LUKA_FALSE)
 		return;
 
-	data->index++;
+	data->index++;*/
 }
 
 void luka_data_down (Luka *luka, voidp p) {
-	LukaData *data = (LukaData *)p;
+	/*LukaData *data = (LukaData *)p;
 
 	if (data->type == LUKA_NULL || data->type == LUKA_TRUE || data->type == LUKA_FALSE)
 		return;
@@ -407,7 +407,7 @@ void luka_data_down (Luka *luka, voidp p) {
 	if (--data->index == 0) {
 		rbtreev_rmv(luka, luka->data, p);
 		luka_data_destroy(luka, data);
-	}
+	}*/
 }
 
 int luka_data_index (Luka *luka, voidp p) {
@@ -417,9 +417,9 @@ int luka_data_index (Luka *luka, voidp p) {
 
 /** 记录可能出现的垃圾数据 **/
 void luka_data_trash (Luka *luka, voidp p) {
-	if (!rbtreev_exist(luka, luka->trash, p)) {
-		rbtreev_put(luka, luka->trash, p);
-	}
+	//if (!rbtreev_exist(luka, luka->trash, p)) {
+	//	rbtreev_put(luka, luka->trash, p);
+	//}
 }
 
 static void luka_data_clean_ex (Luka *luka, voidp p) {
@@ -435,7 +435,7 @@ static void luka_data_clean_ex (Luka *luka, voidp p) {
 }
 
 static void luka_data_clean (Luka *luka) {
-	rbtreev_get_fdata2(luka, luka->trash, luka_data_clean_ex);
+	//rbtreev_get_fdata2(luka, luka->trash, luka_data_clean_ex);
 }
 
 // +--------------------------------------------------
