@@ -1,4 +1,4 @@
-# luka-1.01
+# luka-1.0.1
 # hatsusakana@gmail.com
 # https://megurineluka.cn/
 
