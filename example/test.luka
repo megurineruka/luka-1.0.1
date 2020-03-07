@@ -1,6 +1,19 @@
-#!/Users/yu/Desktop/luka-1.0.1/bin/luka
+#!/usr/bin/luka
 
 package(c);
 
-print("It Works!\n");
-print(tostring(ctime(time())) + "\n");
+include(func.luka);
+
+function luka_main () {
+	print("It Works!\n");
+
+	obj = json_decode('{"version":"luka-1.0.1"}');
+	print("version:", obj->version, "\n");
+
+	if (is_win32()) {
+		system("ipconfig");
+	} else {
+		system("ifconfig");
+	}
+}
+
