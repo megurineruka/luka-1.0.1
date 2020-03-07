@@ -17,6 +17,8 @@
 #include <unistd.h>
 #endif
 
+#include "md5.h"
+#include "cJson.h"
 #include "../../kernel/luka.h"
 
 // +--------------------------------------------------
@@ -740,6 +742,504 @@ static voidp luka_pkg_c_rand (Luka *luka, voidp *p, size_t n) {
 	return luka_put_int(luka, rand());
 }
 
+/** 
+ * is_win32
+**/
+static voidp luka_pkg_c_is_win32 (Luka *luka, voidp *p, size_t n) {
+#ifdef _WIN32
+	return luka_true(luka);
+#else
+	return luka_false(luka);
+#endif
+}
+
+static const char *ALPHA_BASE64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+static char *base64_encode (Luka *luka, const char *src) {
+    size_t i = 0, j = 0, len = 0;
+    char buf[3] = {0};
+
+    char  *dst = NULL;
+    size_t size = 0;
+
+    if (!src || (len = strlen(src)) == 0)
+        return NULL;
+
+    size = (len%3 == 0 ? len/3 : len/3 + 1) * 4 + 1;
+    dst = (char *)luka_alloc(luka, size);
+    if (!dst)
+        return NULL;
+
+    for (i = 0, j = 0; i < len; ) {
+        buf[0] = src[i++];
+        buf[1] = i < len ? src[i++] : '\0';
+        buf[2] = i < len ? src[i++] : '\0';
+        
+        dst[j++] = ALPHA_BASE64[(buf[0] >> 2) & 0x3F];
+        dst[j++] = ALPHA_BASE64[((buf[0] << 4) | ((buf[1] & 0xFF) >> 4)) & 0x3F];
+        dst[j++] = ALPHA_BASE64[((buf[1] << 2) | ((buf[2] & 0xFF) >> 6)) & 0x3F];
+        dst[j++] = ALPHA_BASE64[buf[2] & 0x3F];
+    }
+    
+    switch (len % 3) {
+        case 1: dst[--j] = '=';
+        case 2: dst[--j] = '=';
+    }
+    return dst;
+}
+
+static char *base64_decode (Luka *luka, const char *src) {
+    size_t i = 0, j = 0, len = 0;
+    char buf[4] = {0};
+    int toInt[128] = {-1};
+
+    char  *dst = NULL;
+    size_t size = 0;
+
+    if (!src || (len = strlen(src)) == 0 || len % 4 != 0)
+        return NULL;
+
+    size = len/4*3 + 1;
+    dst = (char *)luka_alloc(luka, size);
+    if (!dst)
+        return NULL;
+
+    for (i = 0; i < 64; i++)
+        toInt[ALPHA_BASE64[i]] = i;
+
+    for (i = 0, j = 0; i < len; i += 4) {
+        buf[0] = toInt[src[i]];
+        buf[1] = toInt[src[i + 1]];
+        dst[j++] = (((buf[0] << 2) | (buf[1] >> 4)) & 0xff);
+        buf[2] = toInt[src[i + 2]];
+        dst[j++] = (((buf[1] << 4) | (buf[2] >> 2)) & 0xff);
+        buf[3] = toInt[src[i + 3]];
+        dst[j++] = (((buf[2] << 6) | buf[3]) & 0xff);
+    }
+    return dst;
+}
+
+/** 
+ * base64_encode
+**/
+static voidp luka_pkg_c_base64_encode (Luka *luka, voidp *p, size_t n) {
+	const char *str = NULL;
+
+	if (n < 1 || !luka_is_string(luka, p[0]))
+		return luka_null(luka);
+
+	str = luka_get_string(luka, p[0]);
+	if (*str == 0)
+		return luka_null(luka);
+
+	return luka_put_string(luka, base64_encode(luka, str));
+}
+
+/** 
+ * base64_decode
+**/
+static voidp luka_pkg_c_base64_decode (Luka *luka, voidp *p, size_t n) {
+	const char *str = NULL;
+
+	if (n < 1 || !luka_is_string(luka, p[0]))
+		return luka_null(luka);
+
+	str = luka_get_string(luka, p[0]);
+	if (*str == 0)
+		return luka_null(luka);
+
+	return luka_put_string(luka, base64_decode(luka, str));
+}
+
+/** 
+ * md5
+**/
+static voidp luka_pkg_c_md5 (Luka *luka, voidp *p, size_t n) {
+	const char *str = NULL;
+	char buf[256] = {0};
+
+	if (n < 1 || !luka_is_string(luka, p[0]))
+		return luka_null(luka);
+
+	str = luka_get_string(luka, p[0]);
+	if (*str == 0)
+		return luka_null(luka);
+
+	MD5Encode32(str, buf, sizeof(buf) - 1);
+	return luka_put_string(luka, luka_strdup(luka, buf));
+}
+
+static int hex2dec (char c) {
+    if ('0' <= c && c <= '9') {
+        return c - '0';
+    } else if ('a' <= c && c <= 'f') {
+        return c - 'a' + 10;
+    } else if ('A' <= c && c <= 'F') {
+        return c - 'A' + 10;
+    }
+    return -1;
+}
+
+static char dec2hex (short int c) {
+    if (0 <= c && c <= 9) {
+        return c + '0';
+    } else if (10 <= c && c <= 15) {
+        return c + 'A' - 10;
+    }
+    return -1;
+}
+
+/** 
+ * url_encode
+**/
+static voidp luka_pkg_c_url_encode (Luka *luka, voidp *p, size_t n) {
+	const char *str = NULL;
+	size_t i = 0, len = 0;
+
+	char *new_str = NULL;
+	size_t new_len = 0, new_i = 0;
+
+	if (n < 1 || !luka_is_string(luka, p[0]))
+		return luka_null(luka);
+
+	str = luka_get_string(luka, p[0]);
+	if (*str == 0)
+		return p[0];
+
+	len = strlen(str);
+	new_len = (len * 4) + 5;
+	new_str = (char *)luka_alloc(luka, new_len);
+
+	for (i = 0; i < len; ++i) {
+		char c = str[i];
+
+		if (    ('0' <= c && c <= '9') ||
+                ('a' <= c && c <= 'z') ||
+                ('A' <= c && c <= 'Z') ||
+                c == '/' || c == '.')
+        {
+            new_str[new_i++] = c;
+        } else {
+            int j = (short int)c;
+            int i1, i0;
+
+            if (j < 0)
+                j += 256;
+            i1 = j / 16;
+            i0 = j - i1 * 16;
+            new_str[new_i++] = '%';
+            new_str[new_i++] = dec2hex(i1);
+            new_str[new_i++] = dec2hex(i0);
+        }
+	}
+
+	return luka_put_string(luka, new_str);
+}
+
+/** 
+ * url_decode
+**/
+static voidp luka_pkg_c_url_decode (Luka *luka, voidp *p, size_t n) {
+	const char *str = NULL;
+	size_t i = 0, len = 0;
+
+	char *new_str = NULL;
+	size_t new_len = 0, new_i = 0;
+
+	if (n < 1 || !luka_is_string(luka, p[0]))
+		return luka_null(luka);
+
+	str = luka_get_string(luka, p[0]);
+	if (*str == 0)
+		return p[0];
+
+	len = strlen(str);
+	new_len = len + 5;
+	new_str = (char *)luka_alloc(luka, new_len);
+
+	for (i = 0; i < len; ++i) {
+        char c = str[i];
+
+        if (c != '%') {
+            if (c == '+')
+                new_str[new_i++] = ' ';
+            else
+                new_str[new_i++] = c;
+        } else {
+            char c1 = str[++i];
+            char c0 = str[++i];
+            int num = 0;
+            num = hex2dec(c1) * 16 + hex2dec(c0);
+            new_str[new_i++] = num;
+        }
+    }
+
+	return luka_put_string(luka, new_str);
+}
+
+/********************************************************************/
+
+typedef struct StringBuffer {
+    unsigned char *data;
+    size_t size;
+    struct StringBuffer *next;
+} StringBuffer;
+
+static void sb_add (Luka *luka, StringBuffer **sb, unsigned char *data, size_t size) {
+    StringBuffer *b = NULL, *bf = NULL;
+    
+    b = (StringBuffer *)luka_alloc(luka, sizeof(StringBuffer));
+    if (b == NULL) return;
+    b->data = (unsigned char *)luka_alloc(luka, size);
+    if (b->data == NULL) {
+        free(b);
+        return;
+    }
+    memcpy(b->data, data, size);
+    b->size = size;
+    b->next = NULL;
+    
+    if (*sb == NULL) {
+        *sb = b;
+    } else {
+        bf = *sb;
+        while (bf->next) bf = bf->next;
+        bf->next = b;
+    }
+}
+
+static void sb_addstr (Luka *luka, StringBuffer **sb, const char *str) {
+	if (str && *str != 0)
+		sb_add(luka, sb, (unsigned char *)str, strlen(str));
+}
+
+static char *sb_tostring (Luka *luka, StringBuffer *sb) {
+    StringBuffer *b = sb;
+    int size = 1, i = 0;
+    char *data = NULL;
+
+    while (b) {
+        size += b->size;
+        b = b->next;
+    }
+
+    data = (char *)luka_alloc(luka, size);
+    if (!data) return NULL;
+    memset(data, 0, size);
+
+    i = 0;
+    b = sb;
+    while (b) {
+        memcpy(data + i, b->data, b->size);
+        i += b->size;
+        b = b->next;
+    }
+    return data;
+}
+
+static void sb_free (Luka *luka, StringBuffer **sb) {
+    StringBuffer *b = NULL, *bf = NULL;
+
+    if (!sb || *sb == NULL) return;
+
+    b = (*sb);
+    while (b) {
+        bf = b;
+        b = b->next;
+        luka_free(luka, bf->data);
+        luka_free(luka, bf);
+    }
+    *sb = NULL;
+}
+
+static cJSON *luka_pkg_c_json_encode_obj_tostring   (Luka *luka, LukaObject *object);
+static cJSON *luka_pkg_c_json_encode_array_tostring (Luka *luka, LukaArray *array);
+
+static cJSON *luka_pkg_c_json_encode_obj_tostring (Luka *luka, LukaObject *object) {
+	StrList *list = NULL, *buf = NULL;
+	cJSON *json = cJSON_CreateObject();
+
+	list = luka_object_each(luka, object);
+	buf = list;
+	while (buf) {
+		voidp data = luka_object_get(luka, object, buf->s);
+		cJSON *json_son = NULL;
+
+		if (luka_is_null(luka, data)) {
+			json_son = cJSON_CreateNull();
+		} else if (luka_is_true(luka, data)) {
+			json_son = cJSON_CreateTrue();
+		} else if (luka_is_false(luka, data)) {
+			json_son = cJSON_CreateFalse();
+		} else if (luka_is_int(luka, data)) {
+			json_son = cJSON_CreateNumber((double)luka_get_int(luka, data));
+		} else if (luka_is_double(luka, data)) {
+			json_son = cJSON_CreateNumber((double)luka_get_double(luka, data));
+		} else if (luka_is_string(luka, data)) {
+			json_son = cJSON_CreateString(luka_get_string(luka, data));
+		} else if (luka_is_object(luka, data)) {
+			json_son = luka_pkg_c_json_encode_obj_tostring(luka, luka_get_object(luka, data));
+		} else if (luka_is_array(luka, data)) {
+			json_son = luka_pkg_c_json_encode_array_tostring(luka, luka_get_array(luka, data));
+		}
+
+		if (json_son) {
+			cJSON_AddItemToObject(json, buf->s, json_son);
+		}
+
+		buf = buf->next;
+	}
+	sl_free(luka, list);
+	return json;
+}
+
+static cJSON *luka_pkg_c_json_encode_array_tostring (Luka *luka, LukaArray *array) {
+	size_t i = 0;
+	cJSON *json = cJSON_CreateArray();
+
+	for (i = 0; i < luka_array_length(luka, array); i++) {
+		voidp data = luka_array_get(luka, array, i);
+		cJSON *json_son = NULL;
+
+		if (luka_is_null(luka, data)) {
+			json_son = cJSON_CreateNull();
+		} else if (luka_is_true(luka, data)) {
+			json_son = cJSON_CreateTrue();
+		} else if (luka_is_false(luka, data)) {
+			json_son = cJSON_CreateFalse();
+		} else if (luka_is_int(luka, data)) {
+			json_son = cJSON_CreateNumber((double)luka_get_int(luka, data));
+		} else if (luka_is_double(luka, data)) {
+			json_son = cJSON_CreateNumber((double)luka_get_double(luka, data));
+		} else if (luka_is_string(luka, data)) {
+			json_son = cJSON_CreateString(luka_get_string(luka, data));
+		} else if (luka_is_object(luka, data)) {
+			json_son = luka_pkg_c_json_encode_obj_tostring(luka, luka_get_object(luka, data));
+		} else if (luka_is_array(luka, data)) {
+			json_son = luka_pkg_c_json_encode_array_tostring(luka, luka_get_array(luka, data));
+		}
+
+		if (json_son) {
+			cJSON_AddItemToArray(json, json_son);
+		}
+	}
+
+	return json;
+}
+
+/**
+ * json_encode
+ */
+static voidp luka_pkg_c_json_encode (Luka *luka, voidp *p, size_t n) {
+	LukaObject *object = NULL;
+	LukaArray  *array  = NULL;
+	cJSON *json = NULL;
+	char *json_string = NULL, *new_string = NULL;
+
+	if (n < 1 || (!luka_is_object(luka, p[0]) && !luka_is_array(luka, p[0])))
+		return luka_null(luka);
+
+	if (luka_is_object(luka, p[0])) {
+		object = luka_get_object(luka, p[0]);
+		json = luka_pkg_c_json_encode_obj_tostring(luka, object);
+	}
+
+	else {
+		array = luka_get_array(luka, p[0]);
+		json = luka_pkg_c_json_encode_array_tostring(luka, array);
+	}
+
+	json_string = cJSON_PrintUnformatted(json);
+	if (!json_string) {
+		cJSON_Delete(json);
+		return luka_null(luka);
+	}
+
+	new_string = luka_strdup(luka, json_string);
+	free(json_string);
+	cJSON_Delete(json);
+	return luka_put_string(luka, new_string);
+}
+
+voidp luka_pkg_c_json_decode_ex (Luka *luka, cJSON *json);
+voidp luka_pkg_c_json_decode_to_obj (Luka *luka, cJSON *obj);
+voidp luka_pkg_c_json_decode_to_array (Luka *luka, cJSON *array);
+
+voidp luka_pkg_c_json_decode_ex (Luka *luka, cJSON *json) {
+	voidp data = luka_null(luka);
+
+	if (json->type == cJSON_False) {
+		return luka_false(luka);
+	} else if (json->type == cJSON_True) {
+		return luka_true(luka);
+	} else if (json->type == cJSON_NULL) {
+		return luka_null(luka);
+	} else if (json->type == cJSON_Number) {
+		return luka_put_double(luka, json->valuedouble);
+	} else if (json->type == cJSON_String) {
+		return luka_put_string(luka, luka_strdup(luka, json->valuestring));
+	} else if (json->type == cJSON_Array) {
+		data = luka_pkg_c_json_decode_to_array(luka, json);
+	} else if (json->type == cJSON_Object) {
+		data = luka_pkg_c_json_decode_to_obj(luka, json);
+	}
+
+	return data;
+}
+
+voidp luka_pkg_c_json_decode_to_obj (Luka *luka, cJSON *obj) {
+	LukaObject *object = NULL;
+	voidp data = luka_put_object(luka);
+	cJSON *buf = obj->child;
+	object = luka_get_object(luka, data);
+
+	while (buf) {
+		cJSON *son = cJSON_GetObjectItem(obj, buf->string);
+		luka_object_put(luka, object, buf->string, luka_pkg_c_json_decode_ex(luka, son));
+		buf = buf->next;
+	}
+
+	return data;
+}
+
+voidp luka_pkg_c_json_decode_to_array (Luka *luka, cJSON *array) {
+	LukaArray *array2 = NULL;
+	voidp data = luka_put_array(luka);
+	size_t i = 0;
+	array2 = luka_get_array(luka, data);
+
+	for (i = 0; i < cJSON_GetArraySize(array); i++) {
+		cJSON *son = cJSON_GetArrayItem(array, i);
+		luka_array_push(luka, array2, luka_pkg_c_json_decode_ex(luka, son));
+	}
+
+	return data;
+}
+
+/**
+ * json_decode
+ */
+static voidp luka_pkg_c_json_decode (Luka *luka, voidp *p, size_t n) {
+	const char *str = NULL;
+	cJSON *json = NULL;
+	voidp data = luka_null(luka);
+
+	if (n < 1 || !luka_is_string(luka, p[0]))
+		return luka_null(luka);
+
+	str = luka_get_string(luka, p[0]);
+	if (*str == 0)
+		return luka_null(luka);
+
+	json = cJSON_Parse(str);
+	if (!json)
+		return luka_null(luka);
+
+	data = luka_pkg_c_json_decode_ex(luka, json);
+	cJSON_Delete(json);
+	return data;
+}
+
 void luka_pkg_c_regs (Luka *luka) {
 	luka_reg(luka, "clock",     luka_pkg_c_clock);
 	luka_reg(luka, "time",      luka_pkg_c_time);
@@ -787,4 +1287,13 @@ void luka_pkg_c_regs (Luka *luka) {
 	luka_reg(luka, "abs",       luka_pkg_c_abs);
 	luka_reg(luka, "srand",     luka_pkg_c_srand);
 	luka_reg(luka, "rand",      luka_pkg_c_rand);
+
+	luka_reg(luka, "is_win32",      luka_pkg_c_is_win32);
+	luka_reg(luka, "base64_encode", luka_pkg_c_base64_encode);
+	luka_reg(luka, "base64_decode", luka_pkg_c_base64_decode);
+	luka_reg(luka, "md5",           luka_pkg_c_md5);
+	luka_reg(luka, "url_encode",    luka_pkg_c_url_encode);
+	luka_reg(luka, "url_decode",    luka_pkg_c_url_decode);
+	luka_reg(luka, "json_encode",   luka_pkg_c_json_encode);
+	luka_reg(luka, "json_decode",   luka_pkg_c_json_decode);
 }
