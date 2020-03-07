@@ -6,7 +6,7 @@
 #ifndef LUKA_H
 #define LUKA_H
 
-#define LUKA_MAIN   	"__LUKAMAIN__"  //虚拟主函数
+#define LUKA_MAIN   	"luka_main"  //虚拟主函数
 #define LUKA_VERSION	"1.0.1"			//版本号
 #define LUKA_DODATE		"2020/2/19"		//开发时间
 #define LUKA_MAX    	100000000       //数组最大长度
@@ -198,7 +198,7 @@ void luka_package (Luka *luka, const char *pkg_name);
 // | luka.c 
 // +--------------------------------------------------
 
-int         luka_main         (const char *luka_script_path);
+int         luka_main         (int argc, char *argv[]);
 
 void       *luka_alloc        (Luka *luka, size_t n);
 void       *luka_alloc2       (Luka *luka, size_t n);

@@ -79,7 +79,7 @@ static void luka_c_dump_ex (Luka *luka, voidp p) {
 		printf("[string]%s", luka_get_string(luka, p));
 	} else if (luka_is_byte(luka, p)) {
 		luka_get_byte(luka, p, &size);
-		printf("[byte]%zu", size);
+		printf("[byte]%d", size);
 	} else if (luka_is_object(luka, p)) {
 		printf("[obj]{");
 		sl = luka_object_each(luka, luka_get_object(luka, p));
@@ -98,6 +98,8 @@ static void luka_c_dump_ex (Luka *luka, voidp p) {
 		printf("[array][");
 		for (i = 0; i < luka_array_length(luka, luka_get_array(luka, p)); i++) {
 			luka_c_dump_ex(luka, luka_array_get(luka, luka_get_array(luka, p), i));
+			if (i + 1 < luka_array_length(luka, luka_get_array(luka, p)))
+				printf(",");
 		}
 		printf("]");
 	} else if (luka_is_voidp(luka, p)) {

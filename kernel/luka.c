@@ -11,7 +11,7 @@
 #include "luka.h"
 
 int main (int argc, char *argv[]) {
-    return argc > 1 ? luka_main(argv[1]) : 0;
+    return argc > 1 ? luka_main(argc, argv) : 0;
 }
 
 // +--------------------------------------------------
@@ -417,9 +417,9 @@ int luka_data_index (Luka *luka, voidp p) {
 
 /** 记录可能出现的垃圾数据 **/
 void luka_data_trash (Luka *luka, voidp p) {
-	//if (!rbtreev_exist(luka, luka->trash, p)) {
-	//	rbtreev_put(luka, luka->trash, p);
-	//}
+	/*if (!rbtreev_exist(luka, luka->trash, p)) {
+		rbtreev_put(luka, luka->trash, p);
+	}*/
 }
 
 static void luka_data_clean_ex (Luka *luka, voidp p) {
@@ -873,7 +873,7 @@ static void luka_gcc (Luka *luka, const char *luka_script_path) {
                 if (func_p != func_main) {
                     func_p = func_main;
                 } else {
-                    fprintf(stderr, "can't gcc '%s':%zu error '}'\n", gcc->script_name, gcc->line);
+                    fprintf(stderr, "can't gcc '%s':%d error '}'\n", gcc->script_name, gcc->line);
                     luka_exception(luka, LUKA_GCC);
                 }
             } else {
@@ -881,7 +881,7 @@ static void luka_gcc (Luka *luka, const char *luka_script_path) {
                 nesting--;
 
                 if (nesting < 0) {
-                    fprintf(stderr, "can't gcc '%s':%zu error '}'\n", gcc->script_name, gcc->line);
+                    fprintf(stderr, "can't gcc '%s':%d error '}'\n", gcc->script_name, gcc->line);
                     luka_exception(luka, LUKA_GCC);
                 }
             }
@@ -941,7 +941,7 @@ static void luka_gcc (Luka *luka, const char *luka_script_path) {
 
         else if (gcc->type == LUKA_GCC_FUNC) {
             if (nesting != 0 && func_p != func_main) {
-                fprintf(stderr, "can't gcc '%s':%zu error define '%s'\n", gcc->script_name, gcc->line, gcc->func_name);
+                fprintf(stderr, "can't gcc '%s':%d error define '%s'\n", gcc->script_name, gcc->line, gcc->func_name);
                 luka_exception(luka, LUKA_GCC);
             }
 
@@ -979,9 +979,13 @@ static void luka_gcc (Luka *luka, const char *luka_script_path) {
 // | 执行脚本
 // +--------------------------------------------------
 
-int luka_main (const char *luka_script_path) {
+int luka_main (int argc, char *argv[]) {
     Luka *luka = NULL;
+    const char *luka_script_path = NULL;
+    voidp *func_param = NULL;
+    size_t i = 0, func_len = 0;
 
+    luka_script_path = argv[1];
     if (!luka_script_path) {
         return -1;
     }
@@ -1002,10 +1006,23 @@ int luka_main (const char *luka_script_path) {
 
     luka_regs(luka);
     luka_data_init(luka);
-    luka_func_add(luka, LUKA_MAIN, NULL, 0);
+    //luka_func_add(luka, LUKA_MAIN, NULL, 0);
 
     luka_gcc(luka, luka_script_path);
-    luka_func_call(luka, LUKA_MAIN, NULL, 0);
+
+    if (argc >= 3) {
+        func_len = argc - 2;
+        func_param = (voidp *)luka_alloc(luka, sizeof(voidp) * func_len);
+        for (i = 0; i < func_len; i++) {
+            func_param[i] =  luka_put_string(luka, luka_strdup(luka, argv[i + 2]));
+        }
+
+        luka_call_func(luka, LUKA_MAIN, func_param, func_len);
+        luka_free(luka, func_param);
+    } else {
+        luka_func_call(luka, LUKA_MAIN, NULL, 0);
+    }
+
     luka_destroy(luka);
     return 1;
 }

@@ -1088,7 +1088,7 @@ void luka_array_push (Luka *luka, LukaArray *array, voidp p) {
 	if (array->length == LUKA_MAX)
 		return;
 
-	sprintf(temp, "%zu", array->length);
+	sprintf(temp, "%d", array->length);
 	rbtreec_put(luka, array->array, temp, p);
 
 	if (array->in_proc) {
@@ -1105,8 +1105,13 @@ void luka_array_put (Luka *luka, LukaArray *array, size_t i, voidp p) {
 	if (i >= LUKA_MAX)
 		return;
 
-	if ((pold = luka_array_get(luka, array, i)) != NULL && array->out_proc) {
-		array->out_proc(luka, pold);
+	if ((pold = luka_array_get(luka, array, i)) != NULL) {
+        char temp[12] = {0};
+        sprintf(temp, "%d", i);
+        rbtreec_put(luka, array->array, temp, p);
+        if (array->out_proc)
+		  array->out_proc(luka, pold);
+        return;
 	}
 
 	for (j = array->length; j < i; j++) {
@@ -1127,7 +1132,7 @@ voidp luka_array_get (Luka *luka, LukaArray *array, size_t i) {
 	if (i >= array->length)
 		return NULL;
 
-	sprintf(temp, "%zu", i);
+	sprintf(temp, "%d", i);
 	p = rbtreec_get(luka, array->array, temp);
 	return p;
 }

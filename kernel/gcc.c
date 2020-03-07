@@ -479,7 +479,7 @@ static void luka_gcc_decode_ex2 (Luka *luka, LukaGCC2 *gcc, LukaGCCData *gcc_dat
                 }
 
                 if (*gcc_data->p != ';') {
-                    fprintf(stderr, "can't gcc %s:%zu, break error\n", gcc_data->script_name, gcc_data->line);
+                    fprintf(stderr, "can't gcc %s:%d, break error\n", gcc_data->script_name, gcc_data->line);
                     luka_exception(luka, 3);
                 } else {
                     gcc_data->p++;
@@ -502,7 +502,7 @@ static void luka_gcc_decode_ex2 (Luka *luka, LukaGCC2 *gcc, LukaGCCData *gcc_dat
                 }
 
                 if (*gcc_data->p != ';') {
-                    fprintf(stderr, "can't gcc %s:%zu, break error\n", gcc_data->script_name, gcc_data->line);
+                    fprintf(stderr, "can't gcc %s:%d, break error\n", gcc_data->script_name, gcc_data->line);
                     luka_exception(luka, 3);
                 } else {
                     gcc_data->p++;
@@ -534,7 +534,7 @@ static void luka_gcc_decode_ex2 (Luka *luka, LukaGCC2 *gcc, LukaGCCData *gcc_dat
                 gcc_data->express_left = gcc_data->p;
                 gcc_data->express_right = luka_strchr(gcc_data->p, ';');
                 if (!gcc_data->express_right) {
-                    fprintf(stderr, "can't gcc %s:%zu '%.12s...'\n", gcc_data->script_name, gcc_data->line, gcc_data->p);
+                    fprintf(stderr, "can't gcc %s:%d '%.12s...'\n", gcc_data->script_name, gcc_data->line, gcc_data->p);
                     luka_exception(luka, 3);
                 }
                 
@@ -583,14 +583,14 @@ static void luka_gcc_decode_ex2 (Luka *luka, LukaGCC2 *gcc, LukaGCCData *gcc_dat
             }
 
             if (*gcc_data->p++ != '(') {
-                fprintf(stderr, "include error '%s':%zu, errcode 1\n", gcc_data->script_name, gcc_data->line);
+                fprintf(stderr, "include error '%s':%d, errcode 1\n", gcc_data->script_name, gcc_data->line);
                 luka_exception(luka, 3);
             }
 
             gcc_data->express_left = gcc_data->p;
             gcc_data->express_right = luka_strchr(gcc_data->p, ')');
             if (!gcc_data->express_right || gcc_data->express_left == gcc_data->express_right) {
-                fprintf(stderr, "include error '%s':%zu, errcode 2\n", gcc_data->script_name, gcc_data->line);
+                fprintf(stderr, "include error '%s':%d, errcode 2\n", gcc_data->script_name, gcc_data->line);
                 luka_exception(luka, 3);
             }
             gcc_data->p = gcc_data->express_right + 1;
@@ -602,7 +602,7 @@ static void luka_gcc_decode_ex2 (Luka *luka, LukaGCC2 *gcc, LukaGCCData *gcc_dat
             state = LUKA_GCCS_NULL;
 
             if (strlen(gcc_data->express_str) == 0) {
-                fprintf(stderr, "include error '%s':%zu, errcode 3\n", gcc_data->script_name, gcc_data->line);
+                fprintf(stderr, "include error '%s':%d, errcode 3\n", gcc_data->script_name, gcc_data->line);
                 luka_exception(luka, 3);
             }
 
@@ -613,7 +613,7 @@ static void luka_gcc_decode_ex2 (Luka *luka, LukaGCC2 *gcc, LukaGCCData *gcc_dat
             }
 
             if (*gcc_data->p++ != ';') {
-                fprintf(stderr, "include error '%s':%zu, errcode 4\n", gcc_data->script_name, gcc_data->line);
+                fprintf(stderr, "include error '%s':%d, errcode 4\n", gcc_data->script_name, gcc_data->line);
                 luka_exception(luka, 3);
             }
 
@@ -636,13 +636,13 @@ static void luka_gcc_decode_ex2 (Luka *luka, LukaGCC2 *gcc, LukaGCCData *gcc_dat
             }
 
             if (*gcc_data->p++ != '(') {
-                fprintf(stderr, "package error '%s':%zu, errcode 1\n", gcc_data->script_name, gcc_data->line);
+                fprintf(stderr, "package error '%s':%d, errcode 1\n", gcc_data->script_name, gcc_data->line);
                 luka_exception(luka, 3);
             }
 			gcc_data->express_left = gcc_data->p;
             gcc_data->express_right = luka_strchr(gcc_data->p, ')');
             if (!gcc_data->express_right || gcc_data->express_left == gcc_data->express_right) {
-                fprintf(stderr, "package error '%s':%zu, errcode 2\n", gcc_data->script_name, gcc_data->line);
+                fprintf(stderr, "package error '%s':%d, errcode 2\n", gcc_data->script_name, gcc_data->line);
                 luka_exception(luka, 3);
             }
             gcc_data->p = gcc_data->express_right + 1;
@@ -654,7 +654,7 @@ static void luka_gcc_decode_ex2 (Luka *luka, LukaGCC2 *gcc, LukaGCCData *gcc_dat
             state = LUKA_GCCS_NULL;
 
             if (strlen(gcc_data->express_str) == 0) {
-                fprintf(stderr, "package error '%s':%zu, errcode 3\n", gcc_data->script_name, gcc_data->line);
+                fprintf(stderr, "package error '%s':%d, errcode 3\n", gcc_data->script_name, gcc_data->line);
                 luka_exception(luka, 3);
             }
 
@@ -665,7 +665,7 @@ static void luka_gcc_decode_ex2 (Luka *luka, LukaGCC2 *gcc, LukaGCCData *gcc_dat
             }
 
             if (*gcc_data->p++ != ';') {
-                fprintf(stderr, "package error '%s':%zu, errcode 4\n", gcc_data->script_name, gcc_data->line);
+                fprintf(stderr, "package error '%s':%d, errcode 4\n", gcc_data->script_name, gcc_data->line);
                 luka_exception(luka, 3);
             }
 
@@ -684,14 +684,14 @@ static void luka_gcc_decode_ex2 (Luka *luka, LukaGCC2 *gcc, LukaGCCData *gcc_dat
             }
 
             if (*gcc_data->p++ != '(') {
-                fprintf(stderr, "if error '%s':%zu, errcode 1\n", gcc_data->script_name, gcc_data->line);
+                fprintf(stderr, "if error '%s':%d, errcode 1\n", gcc_data->script_name, gcc_data->line);
                 luka_exception(luka, 3);
             }
 
             gcc_data->express_left = gcc_data->p;
             gcc_data->express_right = luka_strchr(gcc_data->p, ')');
             if (!gcc_data->express_right || gcc_data->express_left == gcc_data->express_right) {
-                fprintf(stderr, "if error '%s':%zu, errcode 2\n", gcc_data->script_name, gcc_data->line);
+                fprintf(stderr, "if error '%s':%d, errcode 2\n", gcc_data->script_name, gcc_data->line);
                 luka_exception(luka, 3);
             }
             gcc_data->p = gcc_data->express_right + 1;
@@ -703,7 +703,7 @@ static void luka_gcc_decode_ex2 (Luka *luka, LukaGCC2 *gcc, LukaGCCData *gcc_dat
             state = LUKA_GCCS_NULL;
 
             if (strlen(gcc_data->express_str) == 0) {
-                fprintf(stderr, "if error '%s':%zu, errcode 3\n", gcc_data->script_name, gcc_data->line);
+                fprintf(stderr, "if error '%s':%d, errcode 3\n", gcc_data->script_name, gcc_data->line);
                 luka_exception(luka, 3);
             }
 
@@ -714,7 +714,7 @@ static void luka_gcc_decode_ex2 (Luka *luka, LukaGCC2 *gcc, LukaGCCData *gcc_dat
             }
 
             if (*gcc_data->p++ != '{') {
-                fprintf(stderr, "if error '%s':%zu, errcode 4\n", gcc_data->script_name, gcc_data->line);
+                fprintf(stderr, "if error '%s':%d, errcode 4\n", gcc_data->script_name, gcc_data->line);
                 luka_exception(luka, 3);
             }
 
@@ -754,14 +754,14 @@ static void luka_gcc_decode_ex2 (Luka *luka, LukaGCC2 *gcc, LukaGCCData *gcc_dat
                 }
 
                 if (*gcc_data->p++ != '(') {
-                    fprintf(stderr, "else if error '%s':%zu, errcode 1\n", gcc_data->script_name, gcc_data->line);
+                    fprintf(stderr, "else if error '%s':%d, errcode 1\n", gcc_data->script_name, gcc_data->line);
                     luka_exception(luka, 3);
                 }
 
                 gcc_data->express_left = gcc_data->p;
                 gcc_data->express_right = luka_strchr(gcc_data->p, ')');
                 if (!gcc_data->express_right || gcc_data->express_left == gcc_data->express_right) {
-                    fprintf(stderr, "else if error '%s':%zu, errcode 2\n", gcc_data->script_name, gcc_data->line);
+                    fprintf(stderr, "else if error '%s':%d, errcode 2\n", gcc_data->script_name, gcc_data->line);
                     luka_exception(luka, 3);
                 }
                 gcc_data->p = gcc_data->express_right + 1;
@@ -773,7 +773,7 @@ static void luka_gcc_decode_ex2 (Luka *luka, LukaGCC2 *gcc, LukaGCCData *gcc_dat
                 state = LUKA_GCCS_NULL;
 
                 if (strlen(gcc_data->express_str) == 0) {
-                    fprintf(stderr, "else if error '%s':%zu, errcode 3\n", gcc_data->script_name, gcc_data->line);
+                    fprintf(stderr, "else if error '%s':%d, errcode 3\n", gcc_data->script_name, gcc_data->line);
                     luka_exception(luka, 3);
                 }
 
@@ -784,7 +784,7 @@ static void luka_gcc_decode_ex2 (Luka *luka, LukaGCC2 *gcc, LukaGCCData *gcc_dat
                 }
 
                 if (*gcc_data->p++ != '{') {
-                    fprintf(stderr, "else if error '%s':%zu, errcode 4\n", gcc_data->script_name, gcc_data->line);
+                    fprintf(stderr, "else if error '%s':%d, errcode 4\n", gcc_data->script_name, gcc_data->line);
                     luka_exception(luka, 3);
                 }
 
@@ -797,7 +797,7 @@ static void luka_gcc_decode_ex2 (Luka *luka, LukaGCC2 *gcc, LukaGCCData *gcc_dat
             }
 
             else {
-                fprintf(stderr, "else error '%s':%zu, errcode 3\n", gcc_data->script_name, gcc_data->line);
+                fprintf(stderr, "else error '%s':%d, errcode 3\n", gcc_data->script_name, gcc_data->line);
                 luka_exception(luka, 3);
             }
         }
@@ -811,14 +811,14 @@ static void luka_gcc_decode_ex2 (Luka *luka, LukaGCC2 *gcc, LukaGCCData *gcc_dat
             }
 
             if (*gcc_data->p++ != '(') {
-                fprintf(stderr, "while error '%s':%zu, errcode 1\n", gcc_data->script_name, gcc_data->line);
+                fprintf(stderr, "while error '%s':%d, errcode 1\n", gcc_data->script_name, gcc_data->line);
                 luka_exception(luka, 3);
             }
 
             gcc_data->express_left = gcc_data->p;
             gcc_data->express_right = luka_strchr(gcc_data->p, ')');
             if (!gcc_data->express_right || gcc_data->express_left == gcc_data->express_right) {
-                fprintf(stderr, "while error '%s':%zu, errcode 2\n", gcc_data->script_name, gcc_data->line);
+                fprintf(stderr, "while error '%s':%d, errcode 2\n", gcc_data->script_name, gcc_data->line);
                 luka_exception(luka, 3);
             }
             gcc_data->p = gcc_data->express_right + 1;
@@ -830,7 +830,7 @@ static void luka_gcc_decode_ex2 (Luka *luka, LukaGCC2 *gcc, LukaGCCData *gcc_dat
             state = LUKA_GCCS_NULL;
 
             if (strlen(gcc_data->express_str) == 0) {
-                fprintf(stderr, "while error '%s':%zu, errcode 3\n", gcc_data->script_name, gcc_data->line);
+                fprintf(stderr, "while error '%s':%d, errcode 3\n", gcc_data->script_name, gcc_data->line);
                 luka_exception(luka, 3);
             }
 
@@ -841,7 +841,7 @@ static void luka_gcc_decode_ex2 (Luka *luka, LukaGCC2 *gcc, LukaGCCData *gcc_dat
             }
 
             if (*gcc_data->p++ != '{') {
-                fprintf(stderr, "while error '%s':%zu, errcode 4\n", gcc_data->script_name, gcc_data->line);
+                fprintf(stderr, "while error '%s':%d, errcode 4\n", gcc_data->script_name, gcc_data->line);
                 luka_exception(luka, 3);
             }
 
@@ -867,14 +867,14 @@ static void luka_gcc_decode_ex2 (Luka *luka, LukaGCC2 *gcc, LukaGCCData *gcc_dat
             }
 
             if (*gcc_data->p++ != '(') {
-                fprintf(stderr, "for error '%s':%zu, errcode 1\n", gcc_data->script_name, gcc_data->line);
+                fprintf(stderr, "for error '%s':%d, errcode 1\n", gcc_data->script_name, gcc_data->line);
                 luka_exception(luka, 3);
             }
 
             gcc_data->express_left = gcc_data->p;
             gcc_data->express_right = luka_strchr(gcc_data->p, ')');
             if (!gcc_data->express_right || gcc_data->express_left == gcc_data->express_right) {
-                fprintf(stderr, "for error '%s':%zu, errcode 2\n", gcc_data->script_name, gcc_data->line);
+                fprintf(stderr, "for error '%s':%d, errcode 2\n", gcc_data->script_name, gcc_data->line);
                 luka_exception(luka, 3);
             }
             gcc_data->p = gcc_data->express_right + 1;
@@ -886,7 +886,7 @@ static void luka_gcc_decode_ex2 (Luka *luka, LukaGCC2 *gcc, LukaGCCData *gcc_dat
             state = LUKA_GCCS_NULL;
 
             if (strlen(gcc_data->express_str) == 0) {
-                fprintf(stderr, "for error '%s':%zu, errcode 3\n", gcc_data->script_name, gcc_data->line);
+                fprintf(stderr, "for error '%s':%d, errcode 3\n", gcc_data->script_name, gcc_data->line);
                 luka_exception(luka, 3);
             }
 
@@ -897,13 +897,13 @@ static void luka_gcc_decode_ex2 (Luka *luka, LukaGCC2 *gcc, LukaGCCData *gcc_dat
             }
 
             if (*gcc_data->p++ != '{') {
-                fprintf(stderr, "for error '%s':%zu, errcode 4\n", gcc_data->script_name, gcc_data->line);
+                fprintf(stderr, "for error '%s':%d, errcode 4\n", gcc_data->script_name, gcc_data->line);
                 luka_exception(luka, 3);
             }
 
             for_ret = luka_splite(luka, gcc_data->express_str, ';', &for_len);
             if (for_len != 3) {
-                fprintf(stderr, "for error '%s':%zu, errcode 5\n", gcc_data->script_name, gcc_data->line);
+                fprintf(stderr, "for error '%s':%d, errcode 5\n", gcc_data->script_name, gcc_data->line);
                 luka_exception(luka, 3);
             }
             luka_free(luka, gcc_data->express_str);
@@ -936,7 +936,7 @@ static void luka_gcc_decode_ex2 (Luka *luka, LukaGCC2 *gcc, LukaGCCData *gcc_dat
             {
                 for (i = 0; i < a_len; i++) {
                     if (strlen(a[i]) == 0) {
-                        fprintf(stderr, "for error '%s':%zu, errcode 7\n", gcc_data->script_name, gcc_data->line);
+                        fprintf(stderr, "for error '%s':%d, errcode 7\n", gcc_data->script_name, gcc_data->line);
                         luka_exception(luka, 3);
                     }
                 }
@@ -946,7 +946,7 @@ static void luka_gcc_decode_ex2 (Luka *luka, LukaGCC2 *gcc, LukaGCCData *gcc_dat
             {
                 for (i = 0; i < b_len; i++) {
                     if (strlen(b[i]) == 0) {
-                        fprintf(stderr, "for error '%s':%zu, errcode 8\n", gcc_data->script_name, gcc_data->line);
+                        fprintf(stderr, "for error '%s':%d, errcode 8\n", gcc_data->script_name, gcc_data->line);
                         luka_exception(luka, 3);
                     }
                 }
@@ -956,7 +956,7 @@ static void luka_gcc_decode_ex2 (Luka *luka, LukaGCC2 *gcc, LukaGCCData *gcc_dat
             {
                 for (i = 0; i < c_len; i++) {
                     if (strlen(c[i]) == 0) {
-                        fprintf(stderr, "for error '%s':%zu, errcode 9\n", gcc_data->script_name, gcc_data->line);
+                        fprintf(stderr, "for error '%s':%d, errcode 9\n", gcc_data->script_name, gcc_data->line);
                         luka_exception(luka, 3);
                     }
                 }
@@ -982,7 +982,7 @@ static void luka_gcc_decode_ex2 (Luka *luka, LukaGCC2 *gcc, LukaGCCData *gcc_dat
             gcc_data->express_left = gcc_data->p;
             gcc_data->express_right = luka_strchr(gcc_data->p, '(');
             if (!gcc_data->express_right || gcc_data->express_left == gcc_data->express_right) {
-                fprintf(stderr, "function error '%s':%zu, errcode 1\n", gcc_data->script_name, gcc_data->line);
+                fprintf(stderr, "function error '%s':%d, errcode 1\n", gcc_data->script_name, gcc_data->line);
                 luka_exception(luka, 3);
             }
             gcc_data->p = gcc_data->express_right + 1;
@@ -999,7 +999,7 @@ static void luka_gcc_decode_ex2 (Luka *luka, LukaGCC2 *gcc, LukaGCCData *gcc_dat
             gcc_data->express_left = gcc_data->p;
             gcc_data->express_right = luka_strchr(gcc_data->p, ')');
             if (!gcc_data->express_right) {
-                fprintf(stderr, "function error '%s':%zu, errcode 2\n", gcc_data->script_name, gcc_data->line);
+                fprintf(stderr, "function error '%s':%d, errcode 2\n", gcc_data->script_name, gcc_data->line);
                 luka_exception(luka, 3);
             }
             gcc_data->p = gcc_data->express_right + 1;
@@ -1015,7 +1015,7 @@ static void luka_gcc_decode_ex2 (Luka *luka, LukaGCC2 *gcc, LukaGCCData *gcc_dat
                     func_param = luka_splite(luka, gcc_data->express_str, ',', &func_len);
                     for (i = 0; i < func_len; i++) {
                         if (!_isname(func_param[i])) {
-                            fprintf(stderr, "function error '%s':%zu, errcode 3\n", gcc_data->script_name, gcc_data->line);
+                            fprintf(stderr, "function error '%s':%d, errcode 3\n", gcc_data->script_name, gcc_data->line);
                             luka_exception(luka, 3);
                         }
                     }
@@ -1032,7 +1032,7 @@ static void luka_gcc_decode_ex2 (Luka *luka, LukaGCC2 *gcc, LukaGCCData *gcc_dat
             }
 
             if (*gcc_data->p++ != '{') {
-                fprintf(stderr, "function error '%s':%zu, errcode 4\n", gcc_data->script_name, gcc_data->line);
+                fprintf(stderr, "function error '%s':%d, errcode 4\n", gcc_data->script_name, gcc_data->line);
                 luka_exception(luka, 3);
             }
 
@@ -1057,12 +1057,13 @@ static void luka_gcc_decode_ex2 (Luka *luka, LukaGCC2 *gcc, LukaGCCData *gcc_dat
                 luka_gcc_push(luka, gcc, node);
 
                 gcc_data->p++;
+                gcc_data->express_str = NULL;
                 state = LUKA_GCCS_NULL;
             } else {
                 gcc_data->express_left = gcc_data->p;
                 gcc_data->express_right = luka_strchr(gcc_data->p, ';');
                 if (!gcc_data->express_right) {
-                    fprintf(stderr, "return error '%s':%zu, errcode 1\n", gcc_data->script_name, gcc_data->line);
+                    fprintf(stderr, "return error '%s':%d, errcode 1\n", gcc_data->script_name, gcc_data->line);
                     luka_exception(luka, 3);
                 }
                 gcc_data->p = gcc_data->express_right + 1;
@@ -1090,7 +1091,7 @@ static void luka_gcc_decode_ex2 (Luka *luka, LukaGCC2 *gcc, LukaGCCData *gcc_dat
         }
 
         else {
-            fprintf(stderr, "can't gcc %s:%zu '%.12s...', errcode %d\n", gcc_data->script_name, gcc_data->line, gcc_data->p, state);
+            fprintf(stderr, "can't gcc %s:%d '%.12s...', errcode %d\n", gcc_data->script_name, gcc_data->line, gcc_data->p, state);
             luka_exception(luka, 3);
         }
     }
@@ -1577,7 +1578,7 @@ LukaExpress *luka_express_decode (Luka *luka, LukaGCC *gcc) {
 
         else if (luka_express_var(luka, &s, &var)) {
             if (!_isname(var)) {
-                fprintf(stderr, "express error '%s':%zu ==> can't use '%s'\n", gcc->script_name, gcc->line, var);
+                fprintf(stderr, "express error '%s':%d ==> can't use '%s'\n", gcc->script_name, gcc->line, var);
                 luka_exception(luka, 3);
             }
             luka_express_add_var(luka, express, var);
@@ -1601,7 +1602,7 @@ LukaExpress *luka_express_decode (Luka *luka, LukaGCC *gcc) {
         }
 
         else {
-            fprintf(stderr, "express error '%s':%zu ==> '%s', errcode 1\n", gcc->script_name, gcc->line, gcc->express);
+            fprintf(stderr, "express error '%s':%d ==> '%s', errcode 1\n", gcc->script_name, gcc->line, gcc->express);
             luka_exception(luka, 3);
         }
     }
@@ -1610,13 +1611,13 @@ LukaExpress *luka_express_decode (Luka *luka, LukaGCC *gcc) {
 
     //转逆波兰表达式
     if (!luka_express_reset(luka, express)) {
-        fprintf(stderr, "express error '%s':%zu ==> '%s', errcode 2\n", gcc->script_name, gcc->line, gcc->express);
+        fprintf(stderr, "express error '%s':%d ==> '%s', errcode 2\n", gcc->script_name, gcc->line, gcc->express);
         luka_exception(luka, 3);
     }
 
     //测试表达式
     if (!luka_express_test(luka, express)) {
-        fprintf(stderr, "express error '%s':%zu ==> '%s', errcode 3\n", gcc->script_name, gcc->line, gcc->express);
+        fprintf(stderr, "express error '%s':%d ==> '%s', errcode 3\n", gcc->script_name, gcc->line, gcc->express);
         luka_exception(luka, 3);
     }
     return express;
@@ -1640,7 +1641,7 @@ static int luka_express_int (const char **s, int *i) {
 
     if (luka_express_end(p) == 0 && *p != ']')
         return 0;
-
+    
     *i = atoi(*s);
     *s = p;
     return 1;
@@ -2025,6 +2026,7 @@ voidp luka_express_exec (Luka *luka, RBTreeC *vars, LukaExpress *express) {
             else if (luka_is_string(luka, left1_p) && luka_is_string(luka, left2_p)) {
                 const char *left1_s = luka_get_string(luka, left1_p);
                 const char *left2_s = luka_get_string(luka, left2_p);
+
                 char *new_str = (char *)luka_alloc(luka, strlen(left1_s) + strlen(left2_s) + 10);
                 sprintf(new_str, "%s%s", left2_s, left1_s);
                 new_p = luka_put_string(luka, new_str);
@@ -2195,6 +2197,7 @@ voidp luka_express_exec (Luka *luka, RBTreeC *vars, LukaExpress *express) {
         //!=
         else if (oper->oper == LUKA_OPER_NOTQEU) {
             left2_p = luka_expressnode_exec(luka, vars, express_cp, left2);
+
             if ((luka_is_int(luka, left1_p) || luka_is_double(luka, left1_p)) && ((luka_is_int(luka, left2_p) || luka_is_double(luka, left2_p)))) {
                 if (luka_is_int(luka, left1_p) && luka_is_int(luka, left2_p)) {
                     if (luka_get_int(luka, left2_p) == luka_get_int(luka, left1_p)) {
@@ -2228,6 +2231,7 @@ voidp luka_express_exec (Luka *luka, RBTreeC *vars, LukaExpress *express) {
         //&&
         else if (oper->oper == LUKA_OPER_AND) {
             left2_p = luka_expressnode_exec(luka, vars, express_cp, left2);
+
             if (luka_is_true(luka, left2_p) && luka_is_true(luka, left1_p)) {
                 luka_express_RPN_update(luka, express_cp, left2, luka_true(luka));
             } else {
@@ -2241,6 +2245,7 @@ voidp luka_express_exec (Luka *luka, RBTreeC *vars, LukaExpress *express) {
         //||
         else if (oper->oper == LUKA_OPER_OR) {
             left2_p = luka_expressnode_exec(luka, vars, express_cp, left2);
+
             if (luka_is_true(luka, left2_p) || luka_is_true(luka, left1_p)) {
                 luka_express_RPN_update(luka, express_cp, left2, luka_true(luka));
             } else {
@@ -2420,10 +2425,11 @@ voidp luka_express_exec (Luka *luka, RBTreeC *vars, LukaExpress *express) {
                 luka_express_RPN_update(luka, express_cp, left2, luka_null(luka));
             }
 
-			if (p_buf)
+			if (p_buf) {
 				luka_data_down(luka, p_buf);
+            }
 			luka_data_up(luka, buf_p);
-            
+
             luka_express_RPN_rmv(luka, express_cp, left1);
             luka_express_RPN_rmv(luka, express_cp, oper);
         }
