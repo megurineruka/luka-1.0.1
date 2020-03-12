@@ -1469,6 +1469,7 @@ static void luka_express_add_int (Luka *luka, LukaExpress *express, int i) {
     LukaExpressNode *node = (LukaExpressNode *)luka_alloc(luka, sizeof(LukaExpressNode));
     node->type = LUKA_EXP_DATA;
     node->data = luka_put_int(luka, i);
+    luka_data_up(luka, node->data);
     luka_express_add(luka, express, node);
 }
 
@@ -1476,6 +1477,7 @@ static void luka_express_add_double (Luka *luka, LukaExpress *express, double d)
     LukaExpressNode *node = (LukaExpressNode *)luka_alloc(luka, sizeof(LukaExpressNode));
     node->type = LUKA_EXP_DATA;
     node->data = luka_put_double(luka, d);
+    luka_data_up(luka, node->data);
     luka_express_add(luka, express, node);
 }
 
@@ -1483,6 +1485,7 @@ static void luka_express_add_string (Luka *luka, LukaExpress *express, char *str
     LukaExpressNode *node = (LukaExpressNode *)luka_alloc(luka, sizeof(LukaExpressNode));
     node->type = LUKA_EXP_DATA;
     node->data = luka_put_string(luka, str);
+    luka_data_up(luka, node->data);
     luka_express_add(luka, express, node);
 }
 
@@ -1871,6 +1874,9 @@ static voidp luka_expressnode_exec (Luka *luka, RBTreeC *vars, LukaExpress *expr
         dataID = luka_call_func(luka, node->func_name, func_param, func_len);
 
         if (func_param) {
+            for (i = 0; i < node->func_len; i++) {
+                luka_data_check(luka, func_param[i]);
+            }
         	luka_free(luka, func_param);
         }
     } else if (node->type == LUKA_EXP_OBJECT) {
@@ -1962,11 +1968,12 @@ voidp luka_express_exec (Luka *luka, RBTreeC *vars, LukaExpress *express) {
                 	new_p = luka_put_double(luka, luka_get_double(luka, left2_p) / luka_get_double(luka, left1_p));
                 }
                 luka_express_RPN_update(luka, express_cp, left2, new_p);
-                luka_data_trash(luka, new_p);
             } else {
                 luka_express_RPN_update(luka, express_cp, left2, luka_null(luka));
             }
 
+            luka_data_check(luka, left1_p);
+            luka_data_check(luka, left2_p);
             luka_express_RPN_rmv(luka, express_cp, left1);
             luka_express_RPN_rmv(luka, express_cp, oper);
         }
@@ -1982,11 +1989,12 @@ voidp luka_express_exec (Luka *luka, RBTreeC *vars, LukaExpress *express) {
                 	new_p = luka_put_double(luka, luka_get_double(luka, left2_p) * luka_get_double(luka, left1_p));
                 }
                 luka_express_RPN_update(luka, express_cp, left2, new_p);
-                luka_data_trash(luka, new_p);
             } else {
                 luka_express_RPN_update(luka, express_cp, left2, luka_null(luka));
             }
-
+            
+            luka_data_check(luka, left1_p);
+            luka_data_check(luka, left2_p);
             luka_express_RPN_rmv(luka, express_cp, left1);
             luka_express_RPN_rmv(luka, express_cp, oper);
         }
@@ -1998,11 +2006,12 @@ voidp luka_express_exec (Luka *luka, RBTreeC *vars, LukaExpress *express) {
             if (luka_is_int(luka, left1_p) && luka_is_int(luka, left2_p)) {
             	new_p = luka_put_int(luka, luka_get_int(luka, left2_p) % luka_get_int(luka, left1_p));
                 luka_express_RPN_update(luka, express_cp, left2, new_p);
-                luka_data_trash(luka, new_p);
             } else {
                 luka_express_RPN_update(luka, express_cp, left2, luka_null(luka));
             }
-
+            
+            luka_data_check(luka, left1_p);
+            luka_data_check(luka, left2_p);
             luka_express_RPN_rmv(luka, express_cp, left1);
             luka_express_RPN_rmv(luka, express_cp, oper);
         }
@@ -2019,7 +2028,6 @@ voidp luka_express_exec (Luka *luka, RBTreeC *vars, LukaExpress *express) {
 					new_p = luka_put_double(luka, luka_get_double(luka, left2_p) + luka_get_double(luka, left1_p));
 				}
 				luka_express_RPN_update(luka, express_cp, left2, new_p);
-				luka_data_trash(luka, new_p);
             }
 
             //字符串相加
@@ -2031,13 +2039,14 @@ voidp luka_express_exec (Luka *luka, RBTreeC *vars, LukaExpress *express) {
                 sprintf(new_str, "%s%s", left2_s, left1_s);
                 new_p = luka_put_string(luka, new_str);
 				luka_express_RPN_update(luka, express_cp, left2, new_p);
-				luka_data_trash(luka, new_p);
             }
 
             else {
                 luka_express_RPN_update(luka, express_cp, left2, luka_null(luka));
             }
             
+            luka_data_check(luka, left1_p);
+            luka_data_check(luka, left2_p);
             luka_express_RPN_rmv(luka, express_cp, left1);
             luka_express_RPN_rmv(luka, express_cp, oper);
         }
@@ -2052,11 +2061,12 @@ voidp luka_express_exec (Luka *luka, RBTreeC *vars, LukaExpress *express) {
 					new_p = luka_put_double(luka, luka_get_double(luka, left2_p) - luka_get_double(luka, left1_p));
 				}
 				luka_express_RPN_update(luka, express_cp, left2, new_p);
-				luka_data_trash(luka, new_p);
             } else {
                 luka_express_RPN_update(luka, express_cp, left2, luka_null(luka));
             }
             
+            luka_data_check(luka, left1_p);
+            luka_data_check(luka, left2_p);
             luka_express_RPN_rmv(luka, express_cp, left1);
             luka_express_RPN_rmv(luka, express_cp, oper);
         }
@@ -2082,6 +2092,8 @@ voidp luka_express_exec (Luka *luka, RBTreeC *vars, LukaExpress *express) {
                 luka_express_RPN_update(luka, express_cp, left2, luka_null(luka));
             }
 
+            luka_data_check(luka, left1_p);
+            luka_data_check(luka, left2_p);
             luka_express_RPN_rmv(luka, express_cp, left1);
             luka_express_RPN_rmv(luka, express_cp, oper);
         }
@@ -2107,6 +2119,8 @@ voidp luka_express_exec (Luka *luka, RBTreeC *vars, LukaExpress *express) {
                 luka_express_RPN_update(luka, express_cp, left2, luka_null(luka));
             }
 
+            luka_data_check(luka, left1_p);
+            luka_data_check(luka, left2_p);
             luka_express_RPN_rmv(luka, express_cp, left1);
             luka_express_RPN_rmv(luka, express_cp, oper);
         }
@@ -2132,6 +2146,8 @@ voidp luka_express_exec (Luka *luka, RBTreeC *vars, LukaExpress *express) {
                 luka_express_RPN_update(luka, express_cp, left2, luka_null(luka));
             }
 
+            luka_data_check(luka, left1_p);
+            luka_data_check(luka, left2_p);
             luka_express_RPN_rmv(luka, express_cp, left1);
             luka_express_RPN_rmv(luka, express_cp, oper);
         }
@@ -2157,6 +2173,8 @@ voidp luka_express_exec (Luka *luka, RBTreeC *vars, LukaExpress *express) {
                 luka_express_RPN_update(luka, express_cp, left2, luka_null(luka));
             }
 
+            luka_data_check(luka, left1_p);
+            luka_data_check(luka, left2_p);
             luka_express_RPN_rmv(luka, express_cp, left1);
             luka_express_RPN_rmv(luka, express_cp, oper);
         }
@@ -2190,6 +2208,8 @@ voidp luka_express_exec (Luka *luka, RBTreeC *vars, LukaExpress *express) {
                 luka_express_RPN_update(luka, express_cp, left2, luka_false(luka));
             }
 
+            luka_data_check(luka, left1_p);
+            luka_data_check(luka, left2_p);
             luka_express_RPN_rmv(luka, express_cp, left1);
             luka_express_RPN_rmv(luka, express_cp, oper);
         }
@@ -2224,6 +2244,8 @@ voidp luka_express_exec (Luka *luka, RBTreeC *vars, LukaExpress *express) {
                 luka_express_RPN_update(luka, express_cp, left2, luka_true(luka));
             }
 
+            luka_data_check(luka, left1_p);
+            luka_data_check(luka, left2_p);
             luka_express_RPN_rmv(luka, express_cp, left1);
             luka_express_RPN_rmv(luka, express_cp, oper);
         }
@@ -2264,7 +2286,6 @@ voidp luka_express_exec (Luka *luka, RBTreeC *vars, LukaExpress *express) {
 				p_buf = rbtreec_get(luka, vars, left2->var_name);
                 rbtreec_put(luka, vars, left2->var_name, left1_p);
                 luka_express_RPN_update(luka, express_cp, left2, left1_p);
-
             } else if (left2->type == LUKA_EXP_OBJECT) {
 				p_buf = luka_object_get(luka, luka_get_object(luka, left2->data), left2->obj_name);
                 luka_object_put(luka, luka_get_object(luka, left2->data), left2->obj_name, left1_p);
@@ -2277,7 +2298,7 @@ voidp luka_express_exec (Luka *luka, RBTreeC *vars, LukaExpress *express) {
 
 			if (p_buf != left1_p) {
 				if (p_buf)
-					luka_data_down(luka, p_buf);
+                    luka_data_down(luka, p_buf);
 				luka_data_up(luka, left1_p);
 			}
 			
@@ -2315,9 +2336,11 @@ voidp luka_express_exec (Luka *luka, RBTreeC *vars, LukaExpress *express) {
                 luka_express_RPN_update(luka, express_cp, left2, luka_null(luka));
             }
 
-			if (p_buf)
-				luka_data_down(luka, p_buf);
-			luka_data_up(luka, buf_p);
+			if (p_buf != left1_p) {
+				if (p_buf)
+                    luka_data_down(luka, p_buf);
+				luka_data_up(luka, buf_p);
+			}
             
             luka_express_RPN_rmv(luka, express_cp, left1);
             luka_express_RPN_rmv(luka, express_cp, oper);
@@ -2353,9 +2376,11 @@ voidp luka_express_exec (Luka *luka, RBTreeC *vars, LukaExpress *express) {
                 luka_express_RPN_update(luka, express_cp, left2, luka_null(luka));
             }
 
-			if (p_buf)
-				luka_data_down(luka, p_buf);
-			luka_data_up(luka, buf_p);
+			if (p_buf != left1_p) {
+				if (p_buf)
+                    luka_data_down(luka, p_buf);
+				luka_data_up(luka, buf_p);
+			}
             
             luka_express_RPN_rmv(luka, express_cp, left1);
             luka_express_RPN_rmv(luka, express_cp, oper);
@@ -2387,9 +2412,11 @@ voidp luka_express_exec (Luka *luka, RBTreeC *vars, LukaExpress *express) {
                 luka_express_RPN_update(luka, express_cp, left2, luka_null(luka));
             }
 
-			if (p_buf)
-				luka_data_down(luka, p_buf);
-			luka_data_up(luka, buf_p);
+			if (p_buf != left1_p) {
+				if (p_buf)
+                    luka_data_down(luka, p_buf);
+				luka_data_up(luka, buf_p);
+			}
             
             luka_express_RPN_rmv(luka, express_cp, left1);
             luka_express_RPN_rmv(luka, express_cp, oper);
@@ -2421,14 +2448,23 @@ voidp luka_express_exec (Luka *luka, RBTreeC *vars, LukaExpress *express) {
                 	luka_array_put(luka, luka_get_array(luka, left2->data), left2->arr_index, buf_p);
                     luka_express_RPN_update(luka, express_cp, left2, buf_p);
                 }
+            } else if (luka_is_string(luka, left1_p) && luka_is_string(luka, left2_p)) {
+                const char *left1_s = luka_get_string(luka, left1_p);
+                const char *left2_s = luka_get_string(luka, left2_p);
+
+                char *new_str = (char *)luka_alloc(luka, strlen(left1_s) + strlen(left2_s) + 10);
+                sprintf(new_str, "%s%s", left2_s, left1_s);
+                buf_p = luka_put_string(luka, new_str);
+				luka_express_RPN_update(luka, express_cp, left2, buf_p);
             } else {
                 luka_express_RPN_update(luka, express_cp, left2, luka_null(luka));
             }
 
-			if (p_buf) {
-				luka_data_down(luka, p_buf);
-            }
-			luka_data_up(luka, buf_p);
+			if (p_buf != left1_p) {
+				if (p_buf)
+                    luka_data_down(luka, p_buf);
+				luka_data_up(luka, buf_p);
+			}
 
             luka_express_RPN_rmv(luka, express_cp, left1);
             luka_express_RPN_rmv(luka, express_cp, oper);
@@ -2464,9 +2500,11 @@ voidp luka_express_exec (Luka *luka, RBTreeC *vars, LukaExpress *express) {
                 luka_express_RPN_update(luka, express_cp, left2, luka_null(luka));
             }
 
-			if (p_buf)
-				luka_data_down(luka, p_buf);
-			luka_data_up(luka, buf_p);
+			if (p_buf != left1_p) {
+				if (p_buf)
+                    luka_data_down(luka, p_buf);
+				luka_data_up(luka, buf_p);
+			}
             
             luka_express_RPN_rmv(luka, express_cp, left1);
             luka_express_RPN_rmv(luka, express_cp, oper);

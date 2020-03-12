@@ -6,7 +6,7 @@
 #ifndef LUKA_H
 #define LUKA_H
 
-#define LUKA_MAIN   	"luka_main"  //虚拟主函数
+#define LUKA_MAIN   	"luka_main"     //虚拟主函数
 #define LUKA_VERSION	"1.0.1"			//版本号
 #define LUKA_DODATE		"2020/2/19"		//开发时间
 #define LUKA_MAX    	100000000       //数组最大长度
@@ -38,8 +38,6 @@ void        rbtreev_put         (Luka *luka, RBTreeV *tree, void *p);
 int         rbtreev_exist       (Luka *luka, RBTreeV *tree, void *p);
 void        rbtreev_rmv         (Luka *luka, RBTreeV *tree, void *p);
 void        rbtreev_destroy     (Luka *luka, RBTreeV *tree);
-voidp       rbtreev_get_fdata   (Luka *luka, RBTreeV *tree);
-void        rbtreev_get_fdata2  (Luka *luka, RBTreeV *tree, void (*func_p)(Luka *, voidp p));
 
 //RBTreeC
 typedef struct RBTreeC RBTreeC;
@@ -241,8 +239,7 @@ void       *luka_get_voidp    (Luka *luka, voidp p);
 
 void        luka_data_up      (Luka *luka, voidp p);
 void        luka_data_down    (Luka *luka, voidp p);
-int         luka_data_index   (Luka *luka, voidp p);
-void        luka_data_trash   (Luka *luka, voidp p);
+void        luka_data_check   (Luka *luka, voidp p);
 
 #ifdef __cplusplus
 }

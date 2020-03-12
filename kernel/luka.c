@@ -34,7 +34,6 @@ struct Luka {
     RBTreeC  *func;
 
     LukaData *ntf[3];
-    RBTreeV  *trash;
 };
 
 typedef enum {
@@ -185,8 +184,6 @@ voidp luka_call_func (Luka *luka, const char *func_name, voidp *p, size_t n) {
     } else {
     	ret = luka_func_call(luka, func_name, p, n);
     }
-
-    luka_data_trash(luka, ret);
     return ret;
 }
 
@@ -203,8 +200,6 @@ static void luka_data_init (Luka *luka) {
     luka->ntf[1]->type = LUKA_TRUE;
     luka->ntf[2] = (LukaData *)luka_alloc(luka, sizeof(LukaData)); //false
     luka->ntf[2]->type = LUKA_FALSE;
-
-    luka->trash = rbtreev_create(luka);
 }
 
 voidp luka_null  (Luka*luka) {
@@ -256,6 +251,7 @@ voidp luka_put_object (Luka *luka) {
     LukaData *data = (LukaData *)luka_alloc(luka, sizeof(LukaData));
     data->type = LUKA_OBJECT;
     data->val.object = luka_object_create(luka);
+    luka_object_setcb(luka, data->val.object, luka_data_up, luka_data_down);
     rbtreev_put(luka, luka->data, data);
     return data;
 }
@@ -264,6 +260,7 @@ voidp luka_put_array (Luka *luka) {
     LukaData *data = (LukaData *)luka_alloc(luka, sizeof(LukaData));
     data->type = LUKA_ARRAY;
     data->val.array = luka_array_create(luka);
+    luka_array_setcb(luka, data->val.array, luka_data_up, luka_data_down);
     rbtreev_put(luka, luka->data, data);
     return data;
 }
@@ -390,16 +387,16 @@ void luka_data_destroy (Luka *luka, LukaData *data) {
 }
 
 void luka_data_up (Luka *luka, voidp p) {
-	/*LukaData *data = (LukaData *)p;
+	LukaData *data = (LukaData *)p;
 
 	if (data->type == LUKA_NULL || data->type == LUKA_TRUE || data->type == LUKA_FALSE)
 		return;
 
-	data->index++;*/
+	data->index++;
 }
 
 void luka_data_down (Luka *luka, voidp p) {
-	/*LukaData *data = (LukaData *)p;
+	LukaData *data = (LukaData *)p;
 
 	if (data->type == LUKA_NULL || data->type == LUKA_TRUE || data->type == LUKA_FALSE)
 		return;
@@ -407,35 +404,19 @@ void luka_data_down (Luka *luka, voidp p) {
 	if (--data->index == 0) {
 		rbtreev_rmv(luka, luka->data, p);
 		luka_data_destroy(luka, data);
-	}*/
+	}
 }
 
-int luka_data_index (Luka *luka, voidp p) {
-	LukaData *data = (LukaData *)p;
-	return data->index;
-}
-
-/** 记录可能出现的垃圾数据 **/
-void luka_data_trash (Luka *luka, voidp p) {
-	/*if (!rbtreev_exist(luka, luka->trash, p)) {
-		rbtreev_put(luka, luka->trash, p);
-	}*/
-}
-
-static void luka_data_clean_ex (Luka *luka, voidp p) {
+void luka_data_check (Luka *luka, voidp p) {
 	LukaData *data = (LukaData *)p;
 
 	if (data->type == LUKA_NULL || data->type == LUKA_TRUE || data->type == LUKA_FALSE)
 		return;
 
-	if (data->index == 0) {
+    if (data->index == 0) {
 		rbtreev_rmv(luka, luka->data, p);
 		luka_data_destroy(luka, data);
-	}
-}
-
-static void luka_data_clean (Luka *luka) {
-	//rbtreev_get_fdata2(luka, luka->trash, luka_data_clean_ex);
+    }
 }
 
 // +--------------------------------------------------
@@ -655,7 +636,7 @@ static voidp luka_func_call (Luka *luka, const char *func_name, voidp *p, size_t
         //表达式
         if (mov->type == LUKA_EXPRESS) {
             dataID = luka_express_exec(luka, vars, mov->express);
-			luka_data_clean(luka);
+            luka_data_check(luka, dataID);
             mov = mov->next;
         }
         
@@ -670,7 +651,6 @@ static voidp luka_func_call (Luka *luka, const char *func_name, voidp *p, size_t
         //if
         else if (mov->type == LUKA_IF) {
             dataID = luka_express_exec(luka, vars, mov->express);
-			luka_data_clean(luka);
             if (dataID == luka_true(luka)) {
                 iwf = (LukaIWF *)luka_alloc(luka, sizeof(LukaIWF));
                 iwf->p = mov;
@@ -687,7 +667,6 @@ static voidp luka_func_call (Luka *luka, const char *func_name, voidp *p, size_t
                 mov = mov->jump;
             } else {
                 dataID = luka_express_exec(luka, vars, mov->express);
-				luka_data_clean(luka);
                 if (dataID == luka_true(luka)) {
                     iwf = (LukaIWF *)luka_alloc(luka, sizeof(LukaIWF));
                     iwf->p = mov;
@@ -714,7 +693,6 @@ static voidp luka_func_call (Luka *luka, const char *func_name, voidp *p, size_t
         //while
         else if (mov->type == LUKA_WHILE) {
             dataID = luka_express_exec(luka, vars, mov->express);
-			luka_data_clean(luka);
             if (dataID == luka_true(luka)) {
                 //第一次进入循环
                 if ((buf = luka_stack_top(luka, stack)) == NULL || buf->p != mov) {
@@ -738,7 +716,7 @@ static voidp luka_func_call (Luka *luka, const char *func_name, voidp *p, size_t
                 if (mov->a) {
                     for (i = 0; i < mov->a_len; i++) {
                         dataID = luka_express_exec(luka, vars, mov->a[i]);
-						luka_data_clean(luka);
+                        luka_data_check(luka, dataID);
                     }
                 }
             }
@@ -747,7 +725,6 @@ static voidp luka_func_call (Luka *luka, const char *func_name, voidp *p, size_t
                 int b_flag = 0;
                 for (i = 0; i < mov->b_len; i++) {
                     dataID = luka_express_exec(luka, vars, mov->b[i]);
-					luka_data_clean(luka);
                     if (dataID != luka_true(luka)) {
                         b_flag = 1;
                         break;
@@ -798,7 +775,6 @@ static voidp luka_func_call (Luka *luka, const char *func_name, voidp *p, size_t
                     if (mov->c) {
                         for (i = 0; i < mov->c_len; i++) {
                             dataID = luka_express_exec(luka, vars, mov->c[i]);
-							luka_data_clean(luka);
                         }
                     }
                 } else {
@@ -1006,9 +982,12 @@ int luka_main (int argc, char *argv[]) {
 
     luka_regs(luka);
     luka_data_init(luka);
-    //luka_func_add(luka, LUKA_MAIN, NULL, 0);
-
     luka_gcc(luka, luka_script_path);
+
+    if (!rbtreec_get(luka, luka->func, LUKA_MAIN)) {
+        luka_destroy(luka);
+        return -3;
+    }
 
     if (argc >= 3) {
         func_len = argc - 2;

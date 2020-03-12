@@ -549,43 +549,6 @@ void rbtreev_destroy (Luka *luka, RBTreeV *tree) {
     luka_free(luka, tree);
 }
 
-
-static void rbtreev_get_fdata_ex (Luka *luka, RBTreeV *tree, RBTreeVNode *node, voidp *p) {
-    if (node == tree->nil || *p != NULL)
-        return;
-
-	if (luka_data_index(luka, node->p) == 0) {
-		*p = node->p;
-		return;
-	}
-
-    rbtreev_get_fdata_ex(luka, tree, node->left, p);
-    rbtreev_get_fdata_ex(luka, tree, node->right, p);
-}
-
-/** 获得一个无效的数据 **/
-voidp rbtreev_get_fdata (Luka *luka, RBTreeV *tree) {
-	voidp p = NULL;
-	rbtreev_get_fdata_ex(luka, tree, tree->root, &p);
-	return p;
-}
-
-static void rbtreev_get_fdata2_ex (Luka *luka, RBTreeV *tree, RBTreeVNode *node, void (*func_p)(Luka *, voidp p)) {
-    if (node == tree->nil)
-        return;
-
-    func_p(luka, node->p);
-	rbtreev_get_fdata2_ex(luka, tree, node->left, func_p);
-	rbtreev_get_fdata2_ex(luka, tree, node->right, func_p);
-    luka_free(luka, node);
-}
-
-/** 获得所有数据 **/
-void rbtreev_get_fdata2 (Luka *luka, RBTreeV *tree, void (*func_p)(Luka *, voidp p)) {
-	rbtreev_get_fdata2_ex(luka, tree, tree->root, func_p);
-	tree->root = tree->nil;
-}
-
 // +--------------------------------------------------
 // | 红黑树(char *)
 // +--------------------------------------------------
