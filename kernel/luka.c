@@ -982,24 +982,25 @@ int luka_main (int argc, char *argv[]) {
 
     luka_regs(luka);
     luka_data_init(luka);
+    luka_func_add(luka, LUKA_MAIN, NULL, 0);
+
     luka_gcc(luka, luka_script_path);
+    luka_func_call(luka, LUKA_MAIN, NULL, 0);
 
-    if (!rbtreec_get(luka, luka->func, LUKA_MAIN)) {
-        luka_destroy(luka);
-        return -3;
-    }
+    if (rbtreec_get(luka, luka->func, LUKA_MAIN2)) {
+        if (argc >= 3) {
+            func_len = argc - 2;
+            func_param = (voidp *)luka_alloc(luka, sizeof(voidp) * func_len);
+            for (i = 0; i < func_len; i++) {
+                func_param[i] = luka_put_string(luka, luka_strdup(luka, argv[i + 2]));
+                luka_data_up(luka, func_param[i]);
+            }
 
-    if (argc >= 3) {
-        func_len = argc - 2;
-        func_param = (voidp *)luka_alloc(luka, sizeof(voidp) * func_len);
-        for (i = 0; i < func_len; i++) {
-            func_param[i] =  luka_put_string(luka, luka_strdup(luka, argv[i + 2]));
+            luka_call_func(luka, LUKA_MAIN2, func_param, func_len);
+            luka_free(luka, func_param);
+        } else {
+            luka_func_call(luka, LUKA_MAIN2, NULL, 0);
         }
-
-        luka_call_func(luka, LUKA_MAIN, func_param, func_len);
-        luka_free(luka, func_param);
-    } else {
-        luka_func_call(luka, LUKA_MAIN, NULL, 0);
     }
 
     luka_destroy(luka);

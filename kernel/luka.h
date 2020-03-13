@@ -6,10 +6,11 @@
 #ifndef LUKA_H
 #define LUKA_H
 
-#define LUKA_MAIN   	"luka_main"     //虚拟主函数
-#define LUKA_VERSION	"1.0.1"			//版本号
-#define LUKA_DODATE		"2020/2/19"		//开发时间
-#define LUKA_MAX    	100000000       //数组最大长度
+#define LUKA_MAIN       "__MAIN__"      //虚拟主函数
+#define LUKA_MAIN2      "luka_main"     //luka主函数
+#define LUKA_VERSION    "1.0.1"         //版本号
+#define LUKA_DODATE     "2020/2/19"     //开发时间
+#define LUKA_MAX        100000000       //数组最大长度
 
 typedef unsigned char *  bytep;
 typedef void *           voidp;
@@ -50,8 +51,8 @@ void        rbtreec_destroy     (Luka *luka, RBTreeC *tree);
 
 //StrList
 typedef struct StrList {
-	char *s;
-	struct StrList *next;
+    char *s;
+    struct StrList *next;
 } StrList;
 int         sl_push             (Luka *luka, StrList **sl, const char *s);
 int         sl_push2            (Luka *luka, StrList **sl, char *s);
