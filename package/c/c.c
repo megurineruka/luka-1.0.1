@@ -624,37 +624,6 @@ static voidp luka_pkg_c_substr (Luka *luka, voidp *p, size_t n) {
 	return luka_put_string(luka, ret);
 }
 
-/**
- * tostring
- */
-static voidp luka_pkg_c_tostring (Luka *luka, voidp *p, size_t n) {
-	voidp pr = luka_null(luka);
-
-	if (luka_is_string(luka, p[0])) {
-		pr = p[0];
-	} else if (luka_is_int(luka, p[0])) {
-		char temp[25] = {0};
-		memset(temp, 0, sizeof(temp));
-		sprintf(temp, "%d", luka_get_int(luka, p[0]));
-		pr = luka_put_string(luka, luka_strdup(luka, temp));
-	} else if (luka_is_double(luka, p[0])) {
-		char temp[25] = {0};
-		memset(temp, 0, sizeof(temp));
-		sprintf(temp, "%g", luka_get_double(luka, p[0]));
-		pr = luka_put_string(luka, luka_strdup(luka, temp));
-	} else if (luka_is_byte(luka, p[0])) {
-		char *temp2 = NULL;
-		bytep datap = NULL;
-		size_t size = 0;
-		datap = luka_get_byte(luka, p[0], &size);
-
-		temp2 = (char *)luka_alloc(luka, size + 5);
-		memcpy(temp2, datap, size);
-		pr = luka_put_string(luka, temp2);
-	}
-	return pr;
-}
-
 // +--------------------------------------------------
 // | 其他
 // +--------------------------------------------------
@@ -1307,7 +1276,6 @@ void luka_pkg_c_regs (Luka *luka) {
 	luka_reg(luka, "strstr",        luka_pkg_c_strstr);
 	luka_reg(luka, "strncmp",       luka_pkg_c_strncmp);
 	luka_reg(luka, "substr",        luka_pkg_c_substr);
-	luka_reg(luka, "tostring",      luka_pkg_c_tostring);
 
 	luka_reg(luka, "sleep",         luka_pkg_c_sleep);
 #ifdef _WIN32
