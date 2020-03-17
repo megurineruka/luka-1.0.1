@@ -710,6 +710,7 @@ static voidp luka_func_call (Luka *luka, const char *func_name, voidp *p, size_t
             } else {
                 if ((buf = luka_stack_top(luka, stack)) != NULL && buf->p == mov) {
                     luka_stack_pop(luka, stack);
+                    luka_free(luka, buf);
                 }
                 mov = mov->jump;
             }
@@ -741,6 +742,7 @@ static voidp luka_func_call (Luka *luka, const char *func_name, voidp *p, size_t
                 if (b_flag == 1) {
                     if ((buf = luka_stack_top(luka, stack)) != NULL && buf->p == mov) {
                         luka_stack_pop(luka, stack);
+                        luka_free(luka, buf);
                     }
                     mov = mov->jump;
                 } else {
@@ -781,6 +783,7 @@ static voidp luka_func_call (Luka *luka, const char *func_name, voidp *p, size_t
                     if (mov->c) {
                         for (i = 0; i < mov->c_len; i++) {
                             dataID = luka_express_exec(luka, vars, mov->c[i]);
+                            luka_data_check(luka, dataID);
                         }
                     }
                 } else {
@@ -794,6 +797,7 @@ static voidp luka_func_call (Luka *luka, const char *func_name, voidp *p, size_t
                 if (mov && mov->type != LUKA_ELSEIF && mov->type != LUKA_ELSE) {
                     if ((buf = luka_stack_top(luka, stack)) != NULL && luka_func_check_if(buf->p, mov->last->jump)) {
                         luka_stack_pop(luka, stack);
+                        luka_free(luka, buf);
                     }
                 }
             }
@@ -803,11 +807,13 @@ static voidp luka_func_call (Luka *luka, const char *func_name, voidp *p, size_t
         else if (mov->type == LUKA_BREAK) {
             LukaIWF *wi_mov = luka_stack_top(luka, stack);
             while (wi_mov->p->type != LUKA_FOR && wi_mov->p->type != LUKA_WHILE) {
+                luka_free(luka, wi_mov);
                 luka_stack_pop(luka, stack);
                 wi_mov = luka_stack_top(luka, stack);
             }
 
             mov = wi_mov->p->jump;
+            luka_free(luka, wi_mov);
             luka_stack_pop(luka, stack);
         }
 
@@ -815,11 +821,13 @@ static voidp luka_func_call (Luka *luka, const char *func_name, voidp *p, size_t
         else if (mov->type == LUKA_CONTINUE) {
             LukaIWF *wi_mov = luka_stack_top(luka, stack);
             while (wi_mov->p->type != LUKA_FOR && wi_mov->p->type != LUKA_WHILE) {
+                luka_free(luka, wi_mov);
                 luka_stack_pop(luka, stack);
                 wi_mov = luka_stack_top(luka, stack);
             }
 
             mov = wi_mov->p->jump;
+            luka_free(luka, wi_mov);
         }
     }
 

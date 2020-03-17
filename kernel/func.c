@@ -118,6 +118,18 @@ static voidp luka_c_dump (Luka *luka, voidp *p, size_t n) {
 	return luka_null(luka);
 }
 
+/** exit **/
+static voidp luka_c_exit (Luka *luka, voidp *p, size_t n) {
+    int ret = 0;
+
+    if (n >=1 && luka_is_int(luka, p[0])) {
+        ret = luka_get_int(luka, p[0]);
+    }
+
+    exit(ret);
+    return luka_null(luka);
+}
+
 // +--------------------------------------------------
 // | Package 
 // +--------------------------------------------------
@@ -163,5 +175,6 @@ void luka_regs (Luka *luka) {
 	luka_reg(luka, "array",   luka_c_array);
 	luka_reg(luka, "count",   luka_c_count);
 	luka_reg(luka, "dump",    luka_c_dump);
+	luka_reg(luka, "exit",    luka_c_exit);
 }
 
