@@ -401,10 +401,10 @@ void luka_data_down (Luka *luka, voidp p) {
 	if (data->type == LUKA_NULL || data->type == LUKA_TRUE || data->type == LUKA_FALSE)
 		return;
 
-	if (--data->index == 0) {
-		rbtreev_rmv(luka, luka->data, p);
-		luka_data_destroy(luka, data);
-	}
+	if (--data->index == 0 && rbtreev_exist(luka, luka->data, p)) {
+        rbtreev_rmv(luka, luka->data, p);
+        luka_data_destroy(luka, data);
+    }
 }
 
 void luka_data_check (Luka *luka, voidp p) {
@@ -413,9 +413,9 @@ void luka_data_check (Luka *luka, voidp p) {
 	if (data->type == LUKA_NULL || data->type == LUKA_TRUE || data->type == LUKA_FALSE)
 		return;
 
-    if (data->index == 0) {
-		rbtreev_rmv(luka, luka->data, p);
-		luka_data_destroy(luka, data);
+    if (data->index == 0 && rbtreev_exist(luka, luka->data, p)) {
+        rbtreev_rmv(luka, luka->data, p);
+        luka_data_destroy(luka, data);
     }
 }
 
@@ -605,6 +605,10 @@ static int luka_func_check_if (LukaCode *a, LukaCode *b) {
     return 0;
 }
 
+static void luka_func_call_return (Luka *luka, void *k, const char *p, void *value) {
+    luka_data_down(luka, value);
+}
+
 /** 调用luka函数 **/
 static voidp luka_func_call (Luka *luka, const char *func_name, voidp *p, size_t n) {
     size_t i = 0;
@@ -628,6 +632,7 @@ static voidp luka_func_call (Luka *luka, const char *func_name, voidp *p, size_t
         size_t i = 0;
         for (i = 0; i < func->func_len && i < n; i++) {
              rbtreec_put(luka, vars, func->func_param[i], p[i]);
+             luka_data_up(luka, p[i]);
         }
     }
 
@@ -643,6 +648,7 @@ static voidp luka_func_call (Luka *luka, const char *func_name, voidp *p, size_t
         //return
         else if (mov->type == LUKA_RETURN) {
             dataID = luka_express_exec(luka, vars, mov->express);
+            rbtreec_each(luka, vars, NULL, luka_func_call_return);
             rbtreec_destroy(luka, vars);
             luka_stack_destroy(luka, stack);
             return dataID;
@@ -817,6 +823,7 @@ static voidp luka_func_call (Luka *luka, const char *func_name, voidp *p, size_t
         }
     }
 
+    rbtreec_each(luka, vars, NULL, luka_func_call_return);
     rbtreec_destroy(luka, vars);
     luka_stack_destroy(luka, stack);
     return luka_null(luka);
