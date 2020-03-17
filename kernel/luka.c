@@ -606,7 +606,8 @@ static int luka_func_check_if (LukaCode *a, LukaCode *b) {
 }
 
 static void luka_func_call_return (Luka *luka, void *k, const char *p, void *value) {
-    luka_data_down(luka, value);
+    if (k != value)
+        luka_data_down(luka, value);
 }
 
 /** 调用luka函数 **/
@@ -648,7 +649,7 @@ static voidp luka_func_call (Luka *luka, const char *func_name, voidp *p, size_t
         //return
         else if (mov->type == LUKA_RETURN) {
             dataID = luka_express_exec(luka, vars, mov->express);
-            rbtreec_each(luka, vars, NULL, luka_func_call_return);
+            rbtreec_each(luka, vars, dataID, luka_func_call_return);
             rbtreec_destroy(luka, vars);
             luka_stack_destroy(luka, stack);
             return dataID;

@@ -1906,7 +1906,8 @@ voidp luka_express_exec (Luka *luka, RBTreeC *vars, LukaExpress *express) {
         left1 = oper->last;
         if (left1) left2 = left1->last;
         
-        left1_p = luka_expressnode_exec(luka, vars, express_cp, left1);
+        if (oper->oper != LUKA_OPER_OR)
+            left1_p = luka_expressnode_exec(luka, vars, express_cp, left1);
 
         //->
         if (oper->oper == LUKA_OPER_OBJ) {
@@ -2258,6 +2259,8 @@ voidp luka_express_exec (Luka *luka, RBTreeC *vars, LukaExpress *express) {
                 luka_express_RPN_update(luka, express_cp, left2, luka_false(luka));
             }
 
+            luka_data_check(luka, left1_p);
+            luka_data_check(luka, left2_p);
             luka_express_RPN_rmv(luka, express_cp, left1);
             luka_express_RPN_rmv(luka, express_cp, oper);
         }
@@ -2266,10 +2269,15 @@ voidp luka_express_exec (Luka *luka, RBTreeC *vars, LukaExpress *express) {
         else if (oper->oper == LUKA_OPER_OR) {
             left2_p = luka_expressnode_exec(luka, vars, express_cp, left2);
 
-            if (luka_is_true(luka, left2_p) || luka_is_true(luka, left1_p)) {
+            if (luka_is_true(luka, left2_p)) {
                 luka_express_RPN_update(luka, express_cp, left2, luka_true(luka));
             } else {
-                luka_express_RPN_update(luka, express_cp, left2, luka_false(luka));
+                left1_p = luka_expressnode_exec(luka, vars, express_cp, left1);
+                if (luka_is_true(luka, left1_p)) {
+                    luka_express_RPN_update(luka, express_cp, left2, luka_true(luka));
+                } else {
+                    luka_express_RPN_update(luka, express_cp, left2, luka_false(luka));
+                }
             }
 
             luka_express_RPN_rmv(luka, express_cp, left1);
@@ -2455,6 +2463,9 @@ voidp luka_express_exec (Luka *luka, RBTreeC *vars, LukaExpress *express) {
                 buf_p = luka_put_string(luka, new_str);
                 rbtreec_put(luka, vars, left2->var_name, buf_p);
 				luka_express_RPN_update(luka, express_cp, left2, buf_p);
+
+                p_buf = left2_p;
+                luka_data_check(luka, left1_p);
             } else {
                 luka_express_RPN_update(luka, express_cp, left2, luka_null(luka));
             }

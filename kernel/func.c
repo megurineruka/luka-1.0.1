@@ -69,6 +69,43 @@ static voidp luka_c_count (Luka *luka, voidp *p, size_t n) {
     return luka_null(luka);
 }
 
+/**
+ * tostring
+ */
+static voidp luka_c_tostring (Luka *luka, voidp *p, size_t n) {
+	voidp pr = luka_null(luka);
+
+	if (luka_is_string(luka, p[0])) {
+		pr = p[0];
+	} else if (luka_is_int(luka, p[0])) {
+		char temp[25] = {0};
+		memset(temp, 0, sizeof(temp));
+		sprintf(temp, "%d", luka_get_int(luka, p[0]));
+		pr = luka_put_string(luka, luka_strdup(luka, temp));
+	} else if (luka_is_double(luka, p[0])) {
+		char temp[25] = {0};
+		memset(temp, 0, sizeof(temp));
+		sprintf(temp, "%g", luka_get_double(luka, p[0]));
+		pr = luka_put_string(luka, luka_strdup(luka, temp));
+	} else if (luka_is_byte(luka, p[0])) {
+		char *temp2 = NULL;
+		bytep datap = NULL;
+		size_t size = 0;
+		datap = luka_get_byte(luka, p[0], &size);
+
+		temp2 = (char *)luka_alloc(luka, size + 5);
+		memcpy(temp2, datap, size);
+		pr = luka_put_string(luka, temp2);
+	}
+
+    if (pr != p[0]) {
+        luka_data_check(luka, p[0]);
+    }
+
+	return pr;
+}
+
+/** dump **/
 static void luka_c_dump_ex (Luka *luka, voidp p) {
 	size_t i = 0, size = 0;
 	StrList *sl = NULL, *sl_mov = NULL;
@@ -177,12 +214,13 @@ void luka_package (Luka *luka, const char *pkg_name) {
 // +--------------------------------------------------
 
 void luka_regs (Luka *luka) {
-	luka_reg(luka, "luka",    luka_c_luka);
-	luka_reg(luka, "print",   luka_c_print);
-	luka_reg(luka, "object",  luka_c_object);
-	luka_reg(luka, "array",   luka_c_array);
-	luka_reg(luka, "count",   luka_c_count);
-	luka_reg(luka, "dump",    luka_c_dump);
-	luka_reg(luka, "exit",    luka_c_exit);
+	luka_reg(luka, "luka",     luka_c_luka);
+	luka_reg(luka, "print",    luka_c_print);
+	luka_reg(luka, "object",   luka_c_object);
+	luka_reg(luka, "array",    luka_c_array);
+	luka_reg(luka, "count",    luka_c_count);
+	luka_reg(luka, "tostring", luka_c_tostring);
+	luka_reg(luka, "dump",     luka_c_dump);
+	luka_reg(luka, "exit",     luka_c_exit);
 }
 
